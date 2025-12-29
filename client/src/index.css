@@ -1,0 +1,269 @@
+:root {
+  --glass-bg: rgba(20, 20, 25, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --accent-primary: #fffc00;
+  /* Snapchat Yellow */
+  --accent-secondary: #00a9ff;
+  /* Bright Blue */
+  --accent-online: #00ff88;
+  --accent-offline: #a0a0a0;
+  --text-main: #ffffff;
+  --text-sub: rgba(255, 255, 255, 0.7);
+  --danger: #ff4757;
+  --surface: #121216;
+}
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  height: 100%;
+  background-color: var(--surface);
+  color: var(--text-main);
+  overflow: hidden;
+}
+
+.app-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Glassmorphism Header */
+.header {
+  height: 70px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px);
+  max-width: 1200px;
+  border-radius: 20px;
+  z-index: 1000;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.header span {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.header b {
+  color: var(--accent-primary);
+}
+
+.header-btns {
+  display: flex;
+  gap: 12px;
+}
+
+.header button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  font-family: 'Outfit';
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.recenter-btn {
+  background: var(--accent-secondary);
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 169, 255, 0.3);
+}
+
+.recenter-btn:hover {
+  background: #0098e6;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 169, 255, 0.4);
+}
+
+.logout-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+  border: 1px solid var(--glass-border) !important;
+}
+
+.logout-btn:hover {
+  background: var(--danger);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Login Redesign */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: radial-gradient(circle at top left, #1e1e26 0%, #0a0a0c 100%);
+}
+
+.login-box {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  padding: 3rem;
+  border-radius: 32px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  width: 360px;
+  text-align: center;
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-box h2 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  color: var(--accent-primary);
+  font-weight: 800;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 14px 20px;
+  margin: 12px 0;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.login-box input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.login-box button {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent-primary);
+  color: #000;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-top: 1rem;
+  transition: all 0.3s;
+}
+
+.login-box button:hover {
+  transform: scale(1.02);
+  filter: brightness(1.1);
+}
+
+/* Map Overrides */
+.map-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Leaflet Customization */
+.leaflet-container {
+  background: #0b0b0d !important;
+}
+
+.error-banner {
+  background: var(--danger);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 16px;
+  position: absolute;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 10px 30px rgba(255, 71, 87, 0.3);
+  font-weight: 600;
+  max-width: 90%;
+  animation: slideDown 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.retry-btn {
+  background: #fff !important;
+  color: var(--danger) !important;
+  font-weight: 800 !important;
+  padding: 6px 16px !important;
+}
+
+/* Custom Marker Styles (applied via MapHandler) */
+.custom-marker-online {
+  filter: drop-shadow(0 0 8px var(--accent-online));
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(10px);
+  color: white !important;
+  border-radius: 16px !important;
+  border: 1px solid var(--glass-border);
+}
+
+.leaflet-popup-tip {
+  background: var(--glass-bg) !important;
+}
