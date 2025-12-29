@@ -1,0 +1,6 @@
+# Node
+node_modules/
+npm-debug.log*
+server/tracker.sqlite
+server/error.log
+.env
