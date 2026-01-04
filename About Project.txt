@@ -1,0 +1,43 @@
+1. Core Tech Stack
+Framework: ASP.NET Core 9.0 (The latest version of .NET MVC).
+Programming Language: C# 13 (Backend logic and controllers).
+Frontend:
+Razor Views: For server-side rendering of pages.
+JavaScript (ES6+): Handles the browser Geolocation API and Map interactions.
+Bootstrap 5: Provides the responsive CSS framework for mobile/desktop layout.
+2. Database & Data Access
+SQL Server Version: SQL Server 2022 / LocalDB (Running as (localdb)\mssqllocaldb).
+ORM: Entity Framework Core 9.0.
+Identity System: ASP.NET Core Identity.
+Customization: I modified the default system to use Username-based login instead of Email-based login for a smoother user experience.
+3. Real-Time & Map Technologies
+SignalR: Used for bidirectional, low-latency communication. When one user moves, the server instantly "broadcasts" the new coordinates to all other 100+ connected users without a page refresh.
+Leaflet.js: An open-source, mobile-friendly map library. It renders the street maps and the user markers.
+OpenStreetMap (OSM): Used as the map tile provider (no API key required).
+HTML5 Geolocation API: Interacts with the device's GPS/Wi-Fi to get accurate Latitude/Longitude coordinates.
+4. Custom Advanced Logic
+"Anti-Gravity" Smoothing Service:
+Moving Average: It stores the last 5 coordinates of a user and calculates the average to prevent the marker from "shaking" on the map.
+Accuracy Filter: It automatically ignores any location data with an accuracy worse than 200 meters (e.g., if a user is in a deep tunnel).
+Impossible Jump Detection: If a user's location jumps at a speed greater than 300m/s (airplane speed), the system rejects the coordinate as a "spoof" or error.
+5. Project Architecture
+The project follows a clean MVC (Model-View-Controller) pattern:
+
+Models: UserLocation.cs defines the data stored in the database.
+Views: 
+Index.cshtml
+ contains the Leaflet map and JavaScript client.
+Controllers: 
+HomeController
+ manages the map view, and 
+AccountController
+ handles secure login/registration.
+Hubs: 
+TrackerHub.cs
+ is the SignalR "engine" that manages the real-time connections.
+Services: 
+LocationService.cs
+ contains the mathematical logic for smoothing and validation.
+6. Scalability
+Capability: Designed to support 100+ concurrent users.
+Optimization: It uses a memory-efficient ConcurrentDictionary for real-time history and optimized SQL queries to fetch initial states for new arrivals.

@@ -1,0 +1,169 @@
+﻿@{
+    ViewData["Title"] = "Live Location Tracker";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+    #map {
+        height: 600px;
+        width: 100%;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .user-info {
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="container">
+    <div class="user-info d-flex justify-content-between align-items-center">
+        <h1>Live Map</h1>
+        <div>
+            <button onclick="centerOnMe()" class="btn btn-primary btn-sm me-2">Center on Me</button>
+            <div id="status" class="badge bg-secondary">Initializing...</div>
+        </div>
+    </div>
+    <div id="map"></div>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
+    <script>
+        // Leaflet Icon Fix for CDN usage
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+            iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+        });
+
+        var map = L.map('map').setView([0, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        var markers = {};
+        var trailLines = {};
+        var mySignalRId = null;
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/trackerHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("ReceiveLocation", (userId, userName, lat, lng, accuracy, timestamp) => {
+            console.log(`Received location for ${userName} (${userId}): ${lat}, ${lng}`);
+            const pos = [lat, lng];
+            
+            // Update or create marker
+            if (markers[userId]) {
+                markers[userId].setLatLng(pos);
+                markers[userId].getPopup().setContent(`<b>${userName}</b><br>Accuracy: ${accuracy.toFixed(1)}m<br>Last seen: ${new Date(timestamp).toLocaleTimeString()}`);
+            } else {
+                console.log(`Creating new marker for ${userName}`);
+                markers[userId] = L.marker(pos).addTo(map)
+                    .bindPopup(`<b>${userName}</b><br>Accuracy: ${accuracy.toFixed(1)}m<br>Last seen: ${new Date(timestamp).toLocaleTimeString()}`);
+                
+                trailLines[userId] = L.polyline([], {color: userId === mySignalRId ? 'blue' : 'gray', weight: 4, opacity: 0.6}).addTo(map);
+            }
+
+            // Update movement trail
+            trailLines[userId].addLatLng(pos);
+            if (trailLines[userId].getLatLngs().length > 30) {
+                trailLines[userId].setLatLngs(trailLines[userId].getLatLngs().slice(1));
+            }
+        });
+
+        connection.on("YourId", (userId) => {
+            console.log("My SignalR User ID is:", userId);
+            mySignalRId = userId;
+        });
+
+        connection.start().then(() => {
+            console.log("SignalR Connected");
+            document.getElementById('status').innerText = 'Connected';
+            document.getElementById('status').classList.replace('bg-secondary', 'bg-success');
+            startTracking();
+        }).catch(err => {
+            console.error("SignalR Connection Error:", err);
+            document.getElementById('status').innerText = 'Connection Failed';
+            document.getElementById('status').classList.replace('bg-secondary', 'bg-danger');
+        });
+
+        var lastUpdateTime = 0;
+        const UPDATE_INTERVAL = 5000; // 5 seconds
+
+        function updateStatus(text, type = 'secondary') {
+            const status = document.getElementById('status');
+            status.innerText = text;
+            status.className = `badge bg-${type}`;
+        }
+
+        function startTracking() {
+            if (!window.isSecureContext && window.location.hostname !== "localhost") {
+                updateStatus('Error: Secure Context Required (HTTPS)', 'danger');
+                alert("Geolocation requires a secure context (HTTPS) or localhost. Please check your URL.");
+                return;
+            }
+
+            if ("geolocation" in navigator) {
+                updateStatus('Requesting Permission...', 'info');
+                console.log("Starting geolocation watch...");
+                
+                navigator.geolocation.watchPosition((position) => {
+                    const now = Date.now();
+                    if (now - lastUpdateTime < UPDATE_INTERVAL) return;
+                    lastUpdateTime = now;
+
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+
+                    console.log(`Sending coords: ${lat}, ${lng} (±${accuracy}m)`);
+                    updateStatus('Transmitting...', 'success');
+
+                    // Send to server
+                    connection.invoke("SendLocation", lat, lng, accuracy)
+                        .catch(err => {
+                            console.error("SendLocation Error:", err);
+                            updateStatus('Transmission Error', 'warning');
+                        });
+
+                    // Center map on self if not yet centered
+                    if (!map._centered) {
+                        map.setView([lat, lng], 16);
+                        map._centered = true;
+                    }
+                }, (error) => {
+                    console.error("Geolocation error:", error);
+                    let msg = "Geolocation error";
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED: msg = "Permission Denied"; break;
+                        case error.POSITION_UNAVAILABLE: msg = "Location Unavailable"; break;
+                        case error.TIMEOUT: msg = "Location Timeout"; break;
+                    }
+                    updateStatus(msg, 'danger');
+                    alert(msg + ": " + error.message);
+                }, {
+                    enableHighAccuracy: true,
+                    maximumAge: 3000,
+                    timeout: 10000
+                });
+            } else {
+                updateStatus('Not Supported', 'danger');
+                alert("Geolocation not supported by this browser.");
+            }
+        }
+        function centerOnMe() {
+            if (mySignalRId && markers[mySignalRId]) {
+                const pos = markers[mySignalRId].getLatLng();
+                map.setView(pos, 16);
+            } else {
+                alert("Location not yet detected.");
+            }
+        }
+    </script>
+}
+

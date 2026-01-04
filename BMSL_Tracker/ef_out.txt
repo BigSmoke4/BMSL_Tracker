@@ -1,0 +1,50 @@
+Using project 'E:\Tracker\BMSL_Tracker\BMSL_Tracker.csproj'.
+Using startup project 'E:\Tracker\BMSL_Tracker\BMSL_Tracker.csproj'.
+dotnet msbuild /target:GetEFProjectMetadata /property:EFProjectMetadataFile=C:\Users\Admin\AppData\Local\Temp\tmpwobyee.tmp /verbosity:quiet /nologo E:\Tracker\BMSL_Tracker\BMSL_Tracker.csproj
+dotnet msbuild /target:GetEFProjectMetadata /property:EFProjectMetadataFile=C:\Users\Admin\AppData\Local\Temp\tmpxrso55.tmp /verbosity:quiet /nologo E:\Tracker\BMSL_Tracker\BMSL_Tracker.csproj
+Build started...
+dotnet build E:\Tracker\BMSL_Tracker\BMSL_Tracker.csproj /verbosity:quiet /nologo /p:PublishAot=false
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.44
+
+Workload updates are available. Run `dotnet workload list` for more information.
+
+Build succeeded.
+dotnet exec --depsfile E:\Tracker\BMSL_Tracker\bin\Debug\net9.0\BMSL_Tracker.deps.json --additionalprobingpath C:\Users\Admin\.nuget\packages --additionalprobingpath "C:\Program Files (x86)\Microsoft Visual Studio\Shared\NuGetPackages" --runtimeconfig E:\Tracker\BMSL_Tracker\bin\Debug\net9.0\BMSL_Tracker.runtimeconfig.json C:\Users\Admin\.dotnet\tools\.store\dotnet-ef\9.0.10\dotnet-ef\9.0.10\tools\net8.0\any\tools\netcoreapp2.0\any\ef.dll database update --assembly E:\Tracker\BMSL_Tracker\bin\Debug\net9.0\BMSL_Tracker.dll --project E:\Tracker\BMSL_Tracker\BMSL_Tracker.csproj --startup-assembly E:\Tracker\BMSL_Tracker\bin\Debug\net9.0\BMSL_Tracker.dll --startup-project E:\Tracker\BMSL_Tracker\BMSL_Tracker.csproj --project-dir E:\Tracker\BMSL_Tracker\ --root-namespace BMSL_Tracker --language C# --framework net9.0 --nullable --working-dir E:\Tracker\BMSL_Tracker --verbose
+Using assembly 'BMSL_Tracker'.
+Using startup assembly 'BMSL_Tracker'.
+Using application base 'E:\Tracker\BMSL_Tracker\bin\Debug\net9.0'.
+Using working directory 'E:\Tracker\BMSL_Tracker'.
+Using root namespace 'BMSL_Tracker'.
+Using project directory 'E:\Tracker\BMSL_Tracker\'.
+Remaining arguments: .
+Finding DbContext classes...
+Using environment 'Development'.
+Finding IDesignTimeDbContextFactory implementations...
+Finding DbContext classes in the project...
+Found DbContext 'ApplicationDbContext'.
+Finding application service provider in assembly 'BMSL_Tracker'...
+Finding Microsoft.Extensions.Hosting service provider...
+Using application service provider from Microsoft.Extensions.Hosting.
+Using context 'ApplicationDbContext'.
+Finding design-time services referenced by assembly 'BMSL_Tracker'...
+Finding design-time services referenced by assembly 'BMSL_Tracker'...
+No referenced design-time services were found.
+Finding design-time services for provider 'Microsoft.EntityFrameworkCore.SqlServer'...
+Using design-time services from provider 'Microsoft.EntityFrameworkCore.SqlServer'.
+Finding IDesignTimeServices implementations in assembly 'BMSL_Tracker'...
+No design-time services were found.
+System.InvalidOperationException: An error was generated for warning 'Microsoft.EntityFrameworkCore.Migrations.PendingModelChangesWarning': The model for context 'ApplicationDbContext' has pending changes. Add a new migration before updating the database. See https://aka.ms/efcore-docs-pending-changes. This exception can be suppressed or logged by passing event ID 'RelationalEventId.PendingModelChangesWarning' to the 'ConfigureWarnings' method in 'DbContext.OnConfiguring' or 'AddDbContext'.
+   at Microsoft.EntityFrameworkCore.Diagnostics.EventDefinition`1.Log[TLoggerCategory](IDiagnosticsLogger`1 logger, TParam arg)
+   at Microsoft.EntityFrameworkCore.Diagnostics.RelationalLoggerExtensions.PendingModelChangesWarning(IDiagnosticsLogger`1 diagnostics, Type contextType)
+   at Microsoft.EntityFrameworkCore.Migrations.Internal.Migrator.ValidateMigrations(Boolean useTransaction, String targetMigration)
+   at Microsoft.EntityFrameworkCore.Migrations.Internal.Migrator.Migrate(String targetMigration)
+   at Microsoft.EntityFrameworkCore.Design.Internal.MigrationsOperations.UpdateDatabase(String targetMigration, String connectionString, String contextType)
+   at Microsoft.EntityFrameworkCore.Design.OperationExecutor.UpdateDatabaseImpl(String targetMigration, String connectionString, String contextType)
+   at Microsoft.EntityFrameworkCore.Design.OperationExecutor.UpdateDatabase.<>c__DisplayClass0_0.<.ctor>b__0()
+   at Microsoft.EntityFrameworkCore.Design.OperationExecutor.OperationBase.Execute(Action action)
+An error was generated for warning 'Microsoft.EntityFrameworkCore.Migrations.PendingModelChangesWarning': The model for context 'ApplicationDbContext' has pending changes. Add a new migration before updating the database. See https://aka.ms/efcore-docs-pending-changes. This exception can be suppressed or logged by passing event ID 'RelationalEventId.PendingModelChangesWarning' to the 'ConfigureWarnings' method in 'DbContext.OnConfiguring' or 'AddDbContext'.
