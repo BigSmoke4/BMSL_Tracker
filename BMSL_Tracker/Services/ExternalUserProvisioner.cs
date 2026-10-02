@@ -41,7 +41,7 @@ public sealed class ExternalUserProvisioner : IExternalUserProvisioner
                     Code = "MissingExternalEmail",
                     Description = "The external provider did not return an e-mail address.",
                 }),
-                user: null);
+                User: null);
         }
 
         var displayName = ExternalUserNames.GetDisplayName(info.Principal);
@@ -63,7 +63,7 @@ public sealed class ExternalUserProvisioner : IExternalUserProvisioner
         var created = await _userManager.CreateAsync(user);
         if (!created.Succeeded)
         {
-            return new ExternalProvisioningResult(created, user: null);
+            return new ExternalProvisioningResult(created, User: null);
         }
 
         var linked = await _userManager.AddLoginAsync(user, info);
@@ -73,7 +73,7 @@ public sealed class ExternalUserProvisioner : IExternalUserProvisioner
                 "External login link failed for user {UserName}; rolling back created account.",
                 user.UserName);
             await _userManager.DeleteAsync(user);
-            return new ExternalProvisioningResult(linked, user: null);
+            return new ExternalProvisioningResult(linked, User: null);
         }
 
         _logger.LogInformation(

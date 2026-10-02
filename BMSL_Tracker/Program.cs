@@ -144,7 +144,7 @@ builder.Services.AddHealthChecks()
 // ---------------------------------------------------------------------------
 builder.Services.AddControllersWithViews(options =>
 {
-    options.Filters.Add(new Microsoft.AspNetCore.Mvc.Filters.AutoValidateAntiforgeryTokenAttribute());
+    options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
 });
 
 // ---------------------------------------------------------------------------
@@ -194,10 +194,9 @@ var signalR = builder.Services.AddSignalR(options =>
 var redisConnectionString = configuration.GetConnectionString("Redis");
 if (!string.IsNullOrWhiteSpace(redisConnectionString))
 {
-    signalR.AddStackExchangeRedis(redisConnectionString, options =>
-    {
-        options.Configuration.ApplicationPrefix = "bmsl-tracker:";
-    });
+    // To namespace channels across shared Redis, append ",instanceName=bmsl-tracker"
+    // to the connection string (StackExchange.Redis option).
+    signalR.AddStackExchangeRedis(redisConnectionString);
 }
 
 // ---------------------------------------------------------------------------
@@ -236,7 +235,9 @@ if (forwardedHeadersEnabled)
                 && IPAddress.TryParse(parts[0], out var networkAddress)
                 && int.TryParse(parts[1], out var prefixLength))
             {
-                options.KnownNetworks.Add(new IPNetwork(networkAddress, prefixLength));
+                // Fully qualified: .NET 9's System.Net.IPNetwork shadows the
+                // HttpOverrides type of the same name under these usings.
+                options.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(networkAddress, prefixLength));
             }
         }
     });

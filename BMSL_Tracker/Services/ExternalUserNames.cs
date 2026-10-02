@@ -89,7 +89,7 @@ public static class ExternalUserNames
         throw new InvalidOperationException("Unable to reserve a unique user name for the external login.");
     }
 
-    private static string FirstUsable(params string[]?[] candidates)
+    private static string FirstUsable(params string?[] candidates)
     {
         foreach (var candidate in candidates)
         {
