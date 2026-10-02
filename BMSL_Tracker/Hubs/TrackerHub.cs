@@ -39,7 +39,7 @@ public sealed class TrackerHub : Hub
         var userId = Context.UserIdentifier;
         await Clients.Caller.SendAsync("YourId", userId ?? string.Empty);
 
-        await SendRecentLocationsAsync(userId);
+        await SendRecentLocationsAsync();
         await base.OnConnectedAsync();
     }
 
@@ -107,12 +107,12 @@ public sealed class TrackerHub : Hub
         }
     }
 
-    private async Task SendRecentLocationsAsync(string? currentUserId)
+    private async Task SendRecentLocationsAsync()
     {
         List<LatestLocation> latest;
         try
         {
-            latest = await GetLatestPerUserAsync(currentUserId);
+            latest = await GetLatestPerUserAsync();
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -127,8 +127,9 @@ public sealed class TrackerHub : Hub
         }
     }
 
-    private async Task<List<LatestLocation>> GetLatestPerUserAsync(string? currentUserId)
+    private async Task<List<LatestLocation>> GetLatestPerUserAsync()
     {
+        var cancellationToken = Context.ConnectionAborted;
         // Fetch the window, then reduce in memory: avoids provider-specific GroupBy translation
         // quirks and is fast for the expected 100-1000 rows per hour of field activity.
         var since = DateTime.UtcNow - InitialStateWindow;
@@ -139,7 +140,7 @@ public sealed class TrackerHub : Hub
             .OrderByDescending(l => l.Timestamp)
             .Take(MaxInitialStatesPerUser * 50)
             .Select(l => new { l.UserId, l.Latitude, l.Longitude, l.Accuracy, l.Timestamp })
-            .ToListAsync(Context.CancellationToken);
+            .ToListAsync(cancellationToken);
 
         if (recent.Count == 0)
         {
@@ -157,7 +158,7 @@ public sealed class TrackerHub : Hub
             .AsNoTracking()
             .Where(u => userIds.Contains(u.Id!))
             .Select(u => new { u.Id, u.UserName })
-            .ToListAsync(Context.CancellationToken);
+            .ToListAsync(cancellationToken);
 
         var nameLookup = names.ToDictionary(u => u.Id!, u => u.UserName ?? "User");
 

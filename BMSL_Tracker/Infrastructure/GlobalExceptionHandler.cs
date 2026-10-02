@@ -12,6 +12,12 @@ namespace BMSL_Tracker.Infrastructure;
 /// </summary>
 public sealed class GlobalExceptionHandler : IExceptionHandler
 {
+    private static readonly System.Text.Json.JsonSerializerOptions ProblemJsonOptions = new()
+    {
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+    };
+
     private readonly ILogger<GlobalExceptionHandler> _logger;
 
     public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
@@ -53,7 +59,10 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             Instance = httpContext.Request.Path,
         };
 
-        await httpContext.Response.WriteAsJsonAsync(problem, "application/problem+json", cancellationToken);
+        // Write manually so the RFC 7807 media type survives (WriteAsJsonAsync forces application/json).
+        var payload = System.Text.Json.JsonSerializer.Serialize(problem, ProblemJsonOptions);
+        httpContext.Response.ContentType = "application/problem+json";
+        await httpContext.Response.WriteAsync(payload, cancellationToken);
         return true;
     }
 }
