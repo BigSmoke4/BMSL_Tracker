@@ -1,0 +1,28 @@
+<Project>
+
+  <!--
+    Shared build settings for all projects in the BMSL_Tracker solution.
+    Keep this file conservative: everything here must work for the web app,
+    the test project and `dotnet publish` in CI/containers.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Default</AnalysisMode>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <!-- Do not treat warnings as errors locally; CI elevates deliberately via -warnaserror on app code only. -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>portable</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+</Project>

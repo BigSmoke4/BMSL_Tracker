@@ -1,0 +1,22 @@
+.git
+.gitignore
+.gitattributes
+.editorconfig
+.github
+.vs
+**/bin/
+**/obj/
+**/*.db
+**/*.db-shm
+**/*.db-wal
+tests/**/bin/
+tests/**/obj/
+Dockerfile
+docker-compose.yml
+README.md
+Readme.txt
+About Project.txt
+docs/
+*.user
+*.suo
+out/

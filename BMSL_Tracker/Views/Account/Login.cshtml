@@ -1,34 +1,52 @@
 @model BMSL_Tracker.Models.LoginViewModel
 @{
     ViewData["Title"] = "Log in";
+    ViewData["ReturnUrl"] = Model.ReturnUrl;
 }
 
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="text-center mb-4">Log in</h2>
-                <form asp-action="Login" method="post">
-                    <div asp-validation-summary="All" class="text-danger"></div>
+<div class="row justify-content-center mt-4">
+    <div class="col-12 col-sm-8 col-md-5 col-lg-4">
+        <div class="card shadow auth-card">
+            <div class="card-body p-4">
+                <h1 class="h3 text-center mb-1">Welcome back</h1>
+                <p class="text-center text-muted mb-4">Sign in to the BMSL live tracking map.</p>
+
+                <form asp-action="Login" method="post" novalidate>
+                    <input type="hidden" asp-for="ReturnUrl" />
+                    <div asp-validation-summary="All" class="text-danger small mb-2" role="alert"></div>
+
                     <div class="form-floating mb-3">
-                        <input asp-for="Username" class="form-control" placeholder="Username" />
+                        <input asp-for="Username" class="form-control" placeholder="User name or e-mail"
+                               autocomplete="username" autofocus />
                         <label asp-for="Username"></label>
-                        <span asp-validation-for="Username" class="text-danger"></span>
+                        <span asp-validation-for="Username" class="text-danger small"></span>
                     </div>
+
                     <div class="form-floating mb-3">
-                        <input asp-for="Password" class="form-control" placeholder="Password" />
-                        <label asp-for="Password"></label>
-                        <span asp-validation-for="Password" class="text-danger"></span>
+                        <input asp-for="Password" class="form-control" placeholder="Password"
+                               autocomplete="current-password" />
+                        <label asp-for="Password">Password</label>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
                     </div>
-                    <div class="checkbox mb-3">
-                        <label asp-for="RememberMe" class="form-label">
-                            <input class="form-check-input" asp-for="RememberMe" />
-                            @Html.DisplayNameFor(m => m.RememberMe)
-                        </label>
+
+                    <div class="form-check mb-3">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label"></label>
                     </div>
+
                     <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
                 </form>
+
+                <partial name="_ExternalLoginButtons" />
+
+                <p class="text-center text-muted small mt-4 mb-0">
+                    New here? <a asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">Create an account</a>
+                </p>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

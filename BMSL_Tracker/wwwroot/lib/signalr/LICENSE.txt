@@ -1,0 +1,11 @@
+@microsoft/signalr 9.0.6 (JavaScript client)
+
+License: MIT — see the package manifest shipped with the
+@microsoft/signalr npm package (package.json → "license": "MIT").
+
+Source: https://github.com/dotnet/aspnetcore
+Copyright (c) .NET Foundation and Contributors
+
+Files in this directory are unmodified build outputs:
+  signalr.min.js      - dist/browser/signalr.min.js
+  signalr.min.js.map  - source map for the above

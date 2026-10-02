@@ -1,70 +1,214 @@
-using BMSL_Tracker.Models;
 using System.Collections.Concurrent;
+using BMSL_Tracker.Infrastructure;
+using Microsoft.Extensions.Options;
 
-namespace BMSL_Tracker.Services
+namespace BMSL_Tracker.Services;
+
+/// <summary>A location sample that passed validation and smoothing and is safe to broadcast/persist.</summary>
+public readonly record struct ValidatedLocation(
+    string UserId,
+    double Latitude,
+    double Longitude,
+    double Accuracy,
+    DateTime TimestampUtc);
+
+public interface ILocationService
 {
-    public interface ILocationService
+    /// <summary>
+    /// Throttles, validates (accuracy + anti-spoofing) and smooths a raw GPS sample.
+    /// Returns <c>false</c> when the sample must be dropped.
+    /// </summary>
+    bool TryValidateAndSmooth(string userId, double latitude, double longitude, double accuracyMeters, out ValidatedLocation location);
+
+    /// <summary>
+    /// Write-amplification guard: a validated sample only needs persisting when the user moved
+    /// far enough since the last write, or enough time has passed.
+    /// </summary>
+    bool ShouldPersist(string userId, in ValidatedLocation location);
+
+    /// <summary>Records that a location was successfully persisted for the user.</summary>
+    void MarkPersisted(string userId, in ValidatedLocation location);
+}
+
+/// <summary>
+/// Stateful, in-memory validation/smoothing pipeline shared by all hub connections.
+/// Thread-safe: invocations for the same user can arrive concurrently (multiple tabs/devices).
+/// </summary>
+public sealed class LocationService : ILocationService
+{
+    private readonly ConcurrentDictionary<string, UserTrackingState> _userStates = new(StringComparer.Ordinal);
+    private readonly TrackerOptions _options;
+    private readonly ILogger<LocationService> _logger;
+    private int _stateCapWarningLogged;
+
+    public LocationService(IOptions<TrackerOptions> options, ILogger<LocationService> logger)
     {
-        bool ValidateAndSmooth(string userId, ref double lat, ref double lng, ref double accuracy);
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(logger);
+        _options = options.Value;
+        _logger = logger;
     }
 
-    public class LocationService : ILocationService
+    public bool TryValidateAndSmooth(
+        string userId, double latitude, double longitude, double accuracyMeters, out ValidatedLocation location)
     {
-        // Keep track of the last few locations for each user for smoothing
-        private static readonly ConcurrentDictionary<string, List<UserLocation>> _userHistory = new();
-        private const int MaxHistory = 5;
-        private const double MaxSpeedMetersPerSecond = 300; // Impossible jump
+        location = default;
 
-        public bool ValidateAndSmooth(string userId, ref double lat, ref double lng, ref double accuracy)
+        if (string.IsNullOrEmpty(userId))
         {
-            // 1. Accuracy filtering (2000m is safer for initial detection on desktop/indoor)
-            if (accuracy > 2000) return false; 
+            return false;
+        }
 
-            var history = _userHistory.GetOrAdd(userId, _ => new List<UserLocation>());
+        if (!GeoMath.IsValidSample(latitude, longitude, accuracyMeters))
+        {
+            return false;
+        }
 
-            var now = DateTime.UtcNow;
-            var newLocation = new UserLocation { Latitude = lat, Longitude = lng, Timestamp = now, Accuracy = accuracy };
+        // Accuracy filter: very coarse fixes (deep indoors, tunnels, blocked browser prompts) are noise.
+        if (accuracyMeters > _options.MaxAccuracyMeters)
+        {
+            return false;
+        }
 
-            lock (history)
+        var now = DateTime.UtcNow;
+
+        if (!_userStates.TryGetValue(userId, out var state))
+        {
+            // Protect against unbounded state growth: above the soft cap, samples are still
+            // broadcast (unsmoothed) but never persisted.
+            if (_userStates.Count >= _options.MaxTrackedUsers)
             {
-                if (history.Count > 0)
-                {
-                    var last = history[^1];
-                    var timeDiffSeconds = (now - last.Timestamp).TotalSeconds;
-                    if (timeDiffSeconds < 0.1) timeDiffSeconds = 0.1; // Prevent division by zero or negative time
-
-                    var distance = CalculateDistance(last.Latitude, last.Longitude, lat, lng);
-                    var speed = distance / timeDiffSeconds;
-
-                    // 2. Anti-spoofing: Ignore impossible jumps
-                    if (speed > MaxSpeedMetersPerSecond) return false;
-                }
-
-                // 3. Movement Trail / Smoothing: Average last N coordinates
-                history.Add(newLocation);
-                if (history.Count > MaxHistory) history.RemoveAt(0);
-
-                lat = history.Average(l => l.Latitude);
-                lng = history.Average(l => l.Longitude);
+                WarnStateCapOnce();
+                location = new ValidatedLocation(userId, latitude, longitude, accuracyMeters, now);
+                return true;
             }
 
+            state = _userStates.GetOrAdd(userId, _ => new UserTrackingState());
+        }
+
+        lock (state.Sync)
+        {
+            // Server-side per-user throttle: bounds broadcast volume regardless of client behaviour.
+            if (state.LastAcceptedUtc.HasValue &&
+                (now - state.LastAcceptedUtc.Value).TotalMilliseconds < _options.MinBroadcastIntervalMs)
+            {
+                return false;
+            }
+
+            // Anti-spoofing: reject impossible jumps relative to the last accepted sample.
+            if (state.LastAcceptedUtc.HasValue)
+            {
+                var elapsedSeconds = (now - state.LastAcceptedUtc.Value).TotalSeconds;
+                if (elapsedSeconds < 0.1)
+                {
+                    elapsedSeconds = 0.1; // clock coalescing guard, prevents divide-by-zero speeds
+                }
+
+                var distance = GeoMath.DistanceMeters(
+                    state.LastAcceptedLat, state.LastAcceptedLng, latitude, longitude);
+
+                if (distance / elapsedSeconds > _options.MaxValidSpeedMetersPerSecond)
+                {
+                    _logger.LogDebug(
+                        "Rejected implausible jump for user {UserId} ({Distance:F0} m in {Elapsed:F1} s).",
+                        userId, distance, elapsedSeconds);
+                    return false;
+                }
+            }
+
+            // "Anti-gravity" smoothing: average the last N accepted points to dampen jitter.
+            state.Buffer.Add((latitude, longitude));
+            if (state.Buffer.Count > _options.SmoothingWindow)
+            {
+                state.Buffer.RemoveAt(0);
+            }
+
+            var smoothLat = 0d;
+            var smoothLng = 0d;
+            foreach (var point in state.Buffer)
+            {
+                smoothLat += point.Lat;
+                smoothLng += point.Lng;
+            }
+
+            smoothLat /= state.Buffer.Count;
+            smoothLng /= state.Buffer.Count;
+
+            state.LastAcceptedUtc = now;
+            state.LastAcceptedLat = latitude;
+            state.LastAcceptedLng = longitude;
+
+            location = new ValidatedLocation(userId, smoothLat, smoothLng, accuracyMeters, now);
             return true;
         }
+    }
 
-        private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
+    public bool ShouldPersist(string userId, in ValidatedLocation location)
+    {
+        if (!_userStates.TryGetValue(userId, out var state))
         {
-            var R = 6371e3; // metres
-            var phi1 = lat1 * Math.PI / 180;
-            var phi2 = lat2 * Math.PI / 180;
-            var deltaPhi = (lat2 - lat1) * Math.PI / 180;
-            var deltaLambda = (lon2 - lon1) * Math.PI / 180;
-
-            var a = Math.Sin(deltaPhi / 2) * Math.Sin(deltaPhi / 2) +
-                    Math.Cos(phi1) * Math.Cos(phi2) *
-                    Math.Sin(deltaLambda / 2) * Math.Sin(deltaLambda / 2);
-            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-
-            return R * c;
+            return false;
         }
+
+        lock (state.Sync)
+        {
+            if (state.LastPersistedUtc is null)
+            {
+                return true;
+            }
+
+            var minutesSinceWrite = (location.TimestampUtc - state.LastPersistedUtc.Value).TotalMinutes;
+            if (minutesSinceWrite >= _options.PersistenceIntervalMinutes)
+            {
+                return true;
+            }
+
+            var moved = GeoMath.DistanceMeters(
+                state.LastPersistedLat, state.LastPersistedLng, location.Latitude, location.Longitude);
+
+            return moved > _options.PersistenceMinMoveMeters;
+        }
+    }
+
+    public void MarkPersisted(string userId, in ValidatedLocation location)
+    {
+        if (!_userStates.TryGetValue(userId, out var state))
+        {
+            return;
+        }
+
+        lock (state.Sync)
+        {
+            state.LastPersistedUtc = location.TimestampUtc;
+            state.LastPersistedLat = location.Latitude;
+            state.LastPersistedLng = location.Longitude;
+        }
+    }
+
+    private void WarnStateCapOnce()
+    {
+        if (Interlocked.Exchange(ref _stateCapWarningLogged, 1) == 0)
+        {
+            _logger.LogWarning(
+                "Per-user tracking state cap ({MaxTrackedUsers}) reached. Extra users are broadcast " +
+                "unsmoothed and never persisted. Increase Tracker:MaxTrackedUsers if this is unexpected.",
+                _options.MaxTrackedUsers);
+        }
+    }
+
+    private sealed class UserTrackingState
+    {
+        public readonly object Sync = new();
+
+        /// <summary>Smoothing buffer of recent raw points (lat/lng pairs).</summary>
+        public List<(double Lat, double Lng)> Buffer { get; } = new();
+
+        public DateTime? LastAcceptedUtc { get; set; }
+        public double LastAcceptedLat { get; set; }
+        public double LastAcceptedLng { get; set; }
+
+        public DateTime? LastPersistedUtc { get; set; }
+        public double LastPersistedLat { get; set; }
+        public double LastPersistedLng { get; set; }
     }
 }

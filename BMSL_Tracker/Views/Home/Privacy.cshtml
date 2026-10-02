@@ -1,6 +1,47 @@
-﻿@{
+@{
     ViewData["Title"] = "Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <h1>Privacy Policy</h1>
+        <p class="text-muted">Last updated: October 2026</p>
+
+        <h2 class="h4 mt-4">What we collect</h2>
+        <p>
+            BMSL Tracker records the approximate geographic position of signed-in field
+            personnel while the tracker tab is open. Each record contains the coordinates,
+            an accuracy radius reported by your device, and a server-side UTC timestamp.
+            Your browser only shares location after you explicitly grant the geolocation
+            permission for this site.
+        </p>
+
+        <h2 class="h4 mt-4">Why we collect it</h2>
+        <p>
+            Location data is used exclusively for operational field-team coordination: live
+            dispatch, route verification and visit confirmation. It is not used for
+            performance evaluation outside working hours and is never shared with third
+            parties other than the hosting infrastructure operated by Billing Master
+            Software Ltd.
+        </p>
+
+        <h2 class="h4 mt-4">Retention</h2>
+        <p>
+            Historical location samples are automatically pruned after the retention window
+            configured by your administrator (90 days by default). Recent activity is
+            visible only to authenticated BMSL users.
+        </p>
+
+        <h2 class="h4 mt-4">Turning tracking off</h2>
+        <p>
+            Close this tab, or deny/revoke the geolocation permission in your browser's
+            site settings. The map will keep showing data for other users until they time out.
+        </p>
+
+        <h2 class="h4 mt-4">Questions</h2>
+        <p>
+            Contact your BMSL administrator or the Privacy Office at
+            <code>privacy@billingmaster.example</code>.
+        </p>
+    </div>
+</div>
