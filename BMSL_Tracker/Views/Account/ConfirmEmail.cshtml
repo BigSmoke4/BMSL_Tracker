@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Email confirmation";
+    var confirmationSucceeded = ViewData["ConfirmationSucceeded"] is true;
+}
+
+<main class="auth-shell">
+    <section class="auth-card text-center">
+        <span class="brand-mark mx-auto mb-4" aria-hidden="true">@(confirmationSucceeded ? "✓" : "!")</span>
+        @if (confirmationSucceeded)
+        {
+            <p class="eyebrow">EMAIL CONFIRMED</p>
+            <h1 class="h2">You’re all set</h1>
+            <p class="auth-subtitle">Your email is confirmed. Sign in to continue to BMSL Tracker.</p>
+            <a class="btn btn-primary auth-submit mt-4" asp-action="Login">Sign in</a>
+        }
+        else
+        {
+            <p class="eyebrow">LINK UNAVAILABLE</p>
+            <h1 class="h2">We couldn’t confirm that email</h1>
+            <p class="auth-subtitle">The link may be invalid or expired. Request another confirmation email and try again.</p>
+            <a class="btn btn-primary auth-submit mt-4" asp-action="ResendConfirmation">Request another link</a>
+        }
+    </section>
+</main>

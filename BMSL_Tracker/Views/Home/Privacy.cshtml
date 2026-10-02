@@ -1,6 +1,25 @@
-﻿@{
-    ViewData["Title"] = "Privacy Policy";
+@{
+    ViewData["Title"] = "Privacy and location data";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<article class="container py-3" style="max-width: 54rem;">
+    <p class="eyebrow">BMSL TRACKER</p>
+    <h1 class="mb-3">Privacy and location data</h1>
+    <p class="lead text-muted">Location sharing is sensitive. This page describes what the application does by default; your organization should publish its final policy and contact details before deployment.</p>
+
+    <h2 class="h4 mt-4">What is collected</h2>
+    <p>When you open the live tracker and grant your browser permission, the app receives your device’s latitude, longitude, reported accuracy and the time of the update. Your account identifier and username are used to associate the update with you. Google sign-in also supplies the verified email address used to create or recognize your account.</p>
+
+    <h2 class="h4 mt-4">Who can see your location</h2>
+    <p>While connected to the tracker, your current location is broadcast to other signed-in tracker users. A recent location may also be shown to users who connect after you. The live map removes a marker when sharing stops or a connection closes, and expires inactive markers after about 30 seconds. Only grant browser location permission when you are comfortable sharing your position with your organization.</p>
+
+    <h2 class="h4 mt-4">Storage and retention</h2>
+    <p>Location history is stored in the configured SQL Server database and is automatically removed after the configured retention period. The default is 30 days; administrators can set <code>LocationData__RetentionDays</code> to a value from 1 to 3,650. Restrict database access and backups to authorized operators.</p>
+
+    <h2 class="h4 mt-4">Third-party services and controls</h2>
+    <p>The map uses OpenStreetMap tiles. Your browser requests map tiles from the tile provider, which can receive normal network metadata such as your IP address. You can stop sharing by closing the tracker or revoking location permission in your browser settings. Ask your organization’s administrator about account and stored-data requests.</p>
+
+    <div class="alert alert-warning mt-4" role="note">
+        This starter policy is a product notice, not legal advice. Before production use, the organization operating this service must confirm its lawful basis, employee notice and consent requirements, data retention schedule, support contact and map-provider terms.
+    </div>
+</article>

@@ -1,0 +1,19 @@
+@model string?
+@{
+    var googleEnabled = ViewData["RegistrationPage"] is true
+        ? ViewData["GoogleSignupEnabled"] is true
+        : ViewData["GoogleLoginEnabled"] is true;
+}
+
+@if (googleEnabled)
+{
+    <div class="auth-divider"><span>or</span></div>
+    <form asp-controller="Account" asp-action="ExternalLogin" method="post" class="external-login-form">
+        <input type="hidden" name="provider" value="Google" />
+        <input type="hidden" name="returnUrl" value="@Model" />
+        <button type="submit" class="btn btn-google">
+            <span class="google-mark" aria-hidden="true">G</span>
+            <span>Continue with Google</span>
+        </button>
+    </form>
+}

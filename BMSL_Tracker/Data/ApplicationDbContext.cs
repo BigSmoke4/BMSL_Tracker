@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using BMSL_Tracker.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace BMSL_Tracker.Data;
@@ -10,5 +11,13 @@ public class ApplicationDbContext : IdentityDbContext
     {
     }
 
-    public DbSet<BMSL_Tracker.Models.UserLocation> UserLocations { get; set; }
+    public DbSet<UserLocation> UserLocations => Set<UserLocation>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<UserLocation>()
+            .HasIndex(location => new { location.UserId, location.Timestamp });
+    }
 }

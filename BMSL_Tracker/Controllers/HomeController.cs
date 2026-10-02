@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using BMSL_Tracker.Models;
-
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BMSL_Tracker.Controllers;
 
@@ -16,19 +16,26 @@ public class HomeController : Controller
         _logger = logger;
     }
 
-    public IActionResult Index()
-    {
-        return View();
-    }
+    [HttpGet]
+    public IActionResult Index() => View();
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult Privacy() => View();
 
+    [AllowAnonymous]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        var exception = HttpContext.Features.Get<IExceptionHandlerPathFeature>()?.Error;
+        if (exception is not null)
+        {
+            _logger.LogError(exception, "An unhandled application error occurred. Request {TraceIdentifier}.", HttpContext.TraceIdentifier);
+        }
+
+        return View(new ErrorViewModel
+        {
+            RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+        });
     }
 }

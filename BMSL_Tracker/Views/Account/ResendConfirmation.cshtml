@@ -1,0 +1,36 @@
+@model BMSL_Tracker.Models.ResendConfirmationViewModel
+@{
+    ViewData["Title"] = "Resend confirmation";
+}
+
+<main class="auth-shell">
+    <section class="auth-card" aria-labelledby="auth-title">
+        <a class="auth-brand" asp-controller="Home" asp-action="Index" aria-label="BMSL Tracker home">
+            <span class="brand-mark" aria-hidden="true">B</span>
+            <span>BMSL <span class="brand-muted">Tracker</span></span>
+        </a>
+        <div class="auth-heading">
+            <p class="eyebrow">ACCOUNT HELP</p>
+            <h1 id="auth-title">Resend confirmation</h1>
+            <p class="auth-subtitle">Enter your email and we’ll send a new link if the account needs confirmation.</p>
+        </div>
+        @if (ViewData["EmailEnabled"] is not true)
+        {
+            <div class="alert alert-info auth-alert" role="status">Email delivery is not configured. Contact your organization’s administrator for help.</div>
+        }
+        <form asp-action="ResendConfirmation" method="post" class="auth-form">
+            <div asp-validation-summary="ModelOnly" class="validation-summary" role="alert"></div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control auth-input" autocomplete="email" inputmode="email" autofocus />
+                <span asp-validation-for="Email" class="field-error"></span>
+            </div>
+            <button type="submit" class="btn btn-primary auth-submit">Send link</button>
+        </form>
+        <p class="auth-switch"><a asp-action="Login">Back to sign in</a></p>
+    </section>
+</main>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

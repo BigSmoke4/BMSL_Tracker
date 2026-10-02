@@ -1,34 +1,56 @@
 @model BMSL_Tracker.Models.LoginViewModel
 @{
-    ViewData["Title"] = "Log in";
+    ViewData["Title"] = "Sign in";
 }
 
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="text-center mb-4">Log in</h2>
-                <form asp-action="Login" method="post">
-                    <div asp-validation-summary="All" class="text-danger"></div>
-                    <div class="form-floating mb-3">
-                        <input asp-for="Username" class="form-control" placeholder="Username" />
-                        <label asp-for="Username"></label>
-                        <span asp-validation-for="Username" class="text-danger"></span>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <input asp-for="Password" class="form-control" placeholder="Password" />
-                        <label asp-for="Password"></label>
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-                    <div class="checkbox mb-3">
-                        <label asp-for="RememberMe" class="form-label">
-                            <input class="form-check-input" asp-for="RememberMe" />
-                            @Html.DisplayNameFor(m => m.RememberMe)
-                        </label>
-                    </div>
-                    <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </form>
-            </div>
+<main class="auth-shell">
+    <section class="auth-card" aria-labelledby="auth-title">
+        <a class="auth-brand" asp-controller="Home" asp-action="Index" aria-label="BMSL Tracker home">
+            <span class="brand-mark" aria-hidden="true">B</span>
+            <span>BMSL <span class="brand-muted">Tracker</span></span>
+        </a>
+
+        <div class="auth-heading">
+            <p class="eyebrow">TEAM LOCATION, IN REAL TIME</p>
+            <h1 id="auth-title">Welcome back</h1>
+            <p class="auth-subtitle">Sign in to continue to your team workspace.</p>
         </div>
-    </div>
-</div>
+
+        @if (ViewData["AuthMessage"] is string message)
+        {
+            <div class="alert alert-info auth-alert" role="status">@message</div>
+        }
+
+        <form asp-action="Login" method="post" class="auth-form">
+            <input asp-for="ReturnUrl" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="validation-summary" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label"></label>
+                <input asp-for="Username" class="form-control auth-input" autocomplete="username" autofocus />
+                <span asp-validation-for="Username" class="field-error"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control auth-input" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="field-error"></span>
+            </div>
+            <div class="form-check auth-remember">
+                <input asp-for="RememberMe" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label"></label>
+            </div>
+
+            <button type="submit" class="btn btn-primary auth-submit">Sign in</button>
+        </form>
+
+        <partial name="_ExternalLoginButton" model="Model.ReturnUrl" />
+
+        <p class="auth-switch">Need another confirmation link? <a asp-action="ResendConfirmation">Resend it</a></p>
+        <p class="auth-switch">New to BMSL Tracker? <a asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">Create an account</a></p>
+        <p class="auth-footnote">By signing in, you agree to use location sharing responsibly and only while it is needed for work.</p>
+    </section>
+</main>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

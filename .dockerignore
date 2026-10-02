@@ -1,0 +1,13 @@
+.git
+.vs
+**/.vs
+**/bin
+**/obj
+**/*.user
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/*.log
+.env
+.env.*
+BMSL_Tracker/appsettings.Development.json

@@ -1,33 +1,89 @@
 @model BMSL_Tracker.Models.RegisterViewModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Create your account";
+    ViewData["RegistrationPage"] = true;
 }
 
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="text-center mb-4">Create a New Account</h2>
-                <form asp-action="Register" method="post">
-                    <div asp-validation-summary="All" class="text-danger"></div>
-                    <div class="form-floating mb-3">
-                        <input asp-for="Username" class="form-control" placeholder="Username" />
-                        <label asp-for="Username"></label>
-                        <span asp-validation-for="Username" class="text-danger"></span>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <input asp-for="Password" class="form-control" placeholder="Password" />
-                        <label asp-for="Password"></label>
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm Password" />
-                        <label asp-for="ConfirmPassword"></label>
-                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                    </div>
-                    <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-                </form>
-            </div>
+<main class="auth-shell">
+    <section class="auth-card" aria-labelledby="auth-title">
+        <a class="auth-brand" asp-controller="Home" asp-action="Index" aria-label="BMSL Tracker home">
+            <span class="brand-mark" aria-hidden="true">B</span>
+            <span>BMSL <span class="brand-muted">Tracker</span></span>
+        </a>
+
+        <div class="auth-heading">
+            <p class="eyebrow">GET YOUR TEAM ON THE MAP</p>
+            <h1 id="auth-title">Create your account</h1>
+            <p class="auth-subtitle">Use a work email so your team can recognize you.</p>
         </div>
-    </div>
-</div>
+
+        @if (ViewData["AuthMessage"] is string message)
+        {
+            <div class="alert alert-info auth-alert" role="status">@message</div>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="validation-summary" role="alert"></div>
+
+        @if (ViewData["LocalSignupEnabled"] is true)
+        {
+            <form asp-action="Register" method="post" class="auth-form">
+                <input asp-for="ReturnUrl" type="hidden" />
+
+                <div class="mb-3">
+                    <label asp-for="Username" class="form-label"></label>
+                    <input asp-for="Username" class="form-control auth-input" autocomplete="username" autofocus />
+                    <span asp-validation-for="Username" class="field-error"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control auth-input" autocomplete="email" inputmode="email" />
+                    <span asp-validation-for="Email" class="field-error"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control auth-input" autocomplete="new-password" aria-describedby="password-hint" />
+                    <span asp-validation-for="Password" class="field-error"></span>
+                    <div id="password-hint" class="form-text">At least 12 characters, including an uppercase letter, a lowercase letter and a number.</div>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                    <input asp-for="ConfirmPassword" class="form-control auth-input" autocomplete="new-password" />
+                    <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary auth-submit">Create account</button>
+                <p class="auth-inline-note">We’ll email you a confirmation link before you can sign in.</p>
+            </form>
+        }
+        else if (ViewData["RegistrationEnabled"] is not true)
+        {
+            <div class="alert alert-secondary auth-alert" role="note">
+                Self-sign-up is disabled until the administrator configures approved organization email domains.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-secondary auth-alert" role="note">
+                Password sign-up is unavailable until outgoing email is configured. Use Google sign-up below if it is enabled.
+            </div>
+        }
+
+        <partial name="_ExternalLoginButton" model="Model.ReturnUrl" />
+
+        @if (ViewData["RegistrationEnabled"] is not true)
+        {
+            <p class="auth-footnote">The deployment administrator must configure approved organization email domains before new accounts can be created.</p>
+        }
+        else if (ViewData["LocalSignupEnabled"] is not true && ViewData["GoogleSignupEnabled"] is not true)
+        {
+            <p class="auth-footnote">The deployment administrator must configure Google sign-in or outgoing email before new accounts can be created.</p>
+        }
+
+        <p class="auth-switch">Already have an account? <a asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">Sign in</a></p>
+        <p class="auth-footnote">Your location is shared only while you use the live tracker. Review your team’s location-sharing policy before continuing.</p>
+    </section>
+</main>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

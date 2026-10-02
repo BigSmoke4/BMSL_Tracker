@@ -1,0 +1,36 @@
+# .NET build output and IDE state
+**/bin/
+**/obj/
+.vs/
+**/.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local databases, logs, and generated reports
+*.db
+*.db-shm
+*.db-wal
+*.log
+**/build_*.txt
+**/ef_out.txt
+**/error.txt
+
+# Local configuration and secrets
+.env
+.env.*
+!/.env.example
+**/appsettings.Local.json
+**/appsettings.Production.json
+*.pfx
+*.p12
+*.pem
+*.key
+
+# Publish and test output
+publish/
+artifacts/
+TestResults/
+coverage/
