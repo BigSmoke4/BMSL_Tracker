@@ -68,7 +68,7 @@ Single instance supports the stated 100+ concurrent trackers comfortably. For mo
 
 | Control | Value |
 |---|---|
-| Auth endpoints (`/Account/*`) | 10 requests/min per client IP, then HTTP 429 with a short message |
+| Auth endpoints (`/Account/*`) | 10 requests/min per client IP for POST actions (login, register, external sign-in, password, unlink); page loads exempt |
 | Identity lockout | 5 failures → 15 min |
 | HSTS | 365 days, includeSubDomains, preload |
 | CSP | `script-src 'self'`; tiles whitelisted in `img-src`; `ws:`/`wss:` for SignalR |

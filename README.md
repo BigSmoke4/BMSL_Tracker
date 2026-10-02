@@ -65,9 +65,10 @@ dotnet user-secrets set "Authentication:Google:ClientSecret" "GOCSPX-xxxx"
 * **Google** — the “Continue with Google” button appears once credentials are configured.
   First-time Google users are **auto-provisioned**: a local account is created from the verified
   Google e-mail with a generated unique user name, the external login is linked, and the user is
-  signed in immediately. Returning Google users sign in via the same button. Passwordless
-  external accounts can attach a local password later by logging in and using Identity's
-  password APIs (roadmap: self-service manage page).
+  signed in immediately. Returning Google users sign in via the same button.
+* **Self-service management** — `/Account/Manage`: view profile, **set a password** for
+  passwordless Google accounts (or change an existing one), **link/unlink** Google. Unlinking is
+  refused when it would leave the account with no sign-in method.
 * Signed-in local users can link Google from the Login page (the flow detects the session and
   attaches the external key instead of creating a new account).
 

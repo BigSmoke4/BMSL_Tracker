@@ -8,10 +8,11 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace BMSL_Tracker.Controllers;
 
 /// <summary>
-/// Local credential login/registration plus Google external sign-in ("sign in" and, on first use,
-/// automatic "sign up"). Authentication endpoints are rate limited per client IP (policy "auth").
+/// Local credential login/registration, self-service account management, and Google external
+/// sign-in ("sign in" and, on first use, automatic "sign up"). Mutating auth endpoints are rate
+/// limited per client IP (policy "auth"); plain page loads are deliberately exempt so shared
+/// office egress IPs are not throttled.
 /// </summary>
-[EnableRateLimiting("auth")]
 public class AccountController : Controller
 {
     /// <summary>
@@ -49,6 +50,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
+    [EnableRateLimiting("auth")]
     [AllowAnonymous]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
@@ -91,6 +93,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
+    [EnableRateLimiting("auth")]
     [AllowAnonymous]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
@@ -126,6 +129,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Logout()
     {
         await _signInManager.SignOutAsync();
@@ -143,6 +147,7 @@ public class AccountController : Controller
         => await ChallengeExternalAsync(provider, returnUrl);
 
     [HttpPost]
+    [EnableRateLimiting("auth")]
     [ActionName("ExternalLogin")]
     [AllowAnonymous]
     public async Task<IActionResult> ExternalLoginPost(string? provider = null, string? returnUrl = null)
@@ -227,6 +232,10 @@ public class AccountController : Controller
                         TempData["MessageIsError"] = true;
                     }
                 }
+                else
+                {
+                    TempData["Message"] = "That account is already linked to you.";
+                }
 
                 return RedirectToLocal(returnUrl);
             }
@@ -264,6 +273,124 @@ public class AccountController : Controller
         await _signInManager.SignInWithClaimsAsync(provisioning.User, isPersistent: false, claims);
 
         return RedirectToLocal(returnUrl);
+    }
+
+    // ------------------------------------------------------------------
+    // Self-service account management
+    // ------------------------------------------------------------------
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Manage()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        var model = new ManageViewModel
+        {
+            UserName = user.UserName ?? string.Empty,
+            Email = user.Email,
+            EmailConfirmed = user.EmailConfirmed,
+            HasPassword = await _userManager.HasPasswordAsync(user),
+            AssociatedLogins = await _userManager.GetLoginsAsync(user),
+            ExternalReturnUrl = Url.Action(nameof(Manage), "Account"),
+        };
+
+        return View(model);
+    }
+
+    /// <summary>
+    /// Sets a password for external-only accounts, or changes an existing one.
+    /// </summary>
+    [HttpPost]
+    [Authorize]
+    [EnableRateLimiting("auth")]
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            TempData["Message"] = string.Join(" ", ModelState.Values
+                .SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            TempData["MessageIsError"] = true;
+            return RedirectToAction(nameof(Manage));
+        }
+
+        var hasPassword = await _userManager.HasPasswordAsync(user);
+        if (hasPassword && string.IsNullOrEmpty(model.CurrentPassword))
+        {
+            TempData["Message"] = "Your current password is required to change the password.";
+            TempData["MessageIsError"] = true;
+            return RedirectToAction(nameof(Manage));
+        }
+
+        var result = hasPassword
+            ? await _userManager.ChangePasswordAsync(user, model.CurrentPassword!, model.NewPassword)
+            : await _userManager.AddPasswordAsync(user, model.NewPassword);
+
+        if (result.Succeeded)
+        {
+            await _signInManager.RefreshSignInAsync(user);
+            _logger.LogInformation("Password {Verb} for user {UserName}.",
+                hasPassword ? "changed" : "set", user.UserName);
+            TempData["Message"] = hasPassword ? "Password changed." : "Password set.";
+        }
+        else
+        {
+            TempData["Message"] = string.Join(" ", result.Errors.Select(e => e.Description));
+            TempData["MessageIsError"] = true;
+        }
+
+        return RedirectToAction(nameof(Manage));
+    }
+
+    /// <summary>
+    /// Unlinks an external login. Refuses when it would leave the account with no way to sign in.
+    /// </summary>
+    [HttpPost]
+    [Authorize]
+    [EnableRateLimiting("auth")]
+    public async Task<IActionResult> RemoveLogin(string loginProvider, string providerKey)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user is null || string.IsNullOrEmpty(loginProvider) || string.IsNullOrEmpty(providerKey))
+        {
+            return NotFound();
+        }
+
+        var logins = await _userManager.GetLoginsAsync(user);
+        var hasPassword = await _userManager.HasPasswordAsync(user);
+        if (!hasPassword && logins.Count <= 1)
+        {
+            TempData["Message"] =
+                "This is your only sign-in method. Set a password before unlinking it.";
+            TempData["MessageIsError"] = true;
+            return RedirectToAction(nameof(Manage));
+        }
+
+        var result = await _userManager.RemoveLoginAsync(user, loginProvider, providerKey);
+        if (result.Succeeded)
+        {
+            await _signInManager.RefreshSignInAsync(user);
+            _logger.LogInformation("Removed {Provider} login for user {UserName}.",
+                loginProvider, user.UserName);
+            TempData["Message"] = $"{loginProvider} unlinked.";
+        }
+        else
+        {
+            TempData["Message"] = string.Join(" ", result.Errors.Select(e => e.Description));
+            TempData["MessageIsError"] = true;
+        }
+
+        return RedirectToAction(nameof(Manage));
     }
 
     // ------------------------------------------------------------------

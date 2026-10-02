@@ -1,0 +1,120 @@
+@model BMSL_Tracker.Models.ManageViewModel
+@{
+    ViewData["Title"] = "Manage account";
+    ViewData["ReturnUrl"] = "/Account/Manage";
+    ViewData["ExternalMode"] = "linking the account";
+    var displayEmail = string.IsNullOrEmpty(Model.Email) || Model.Email.EndsWith("@no-email.invalid")
+        ? null
+        : Model.Email;
+}
+
+<div class="row justify-content-center mt-3">
+    <div class="col-12 col-lg-8">
+        <h1 class="h3 mb-4">Manage account</h1>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">Profile</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-3">User name</dt>
+                    <dd class="col-sm-9">@Model.UserName</dd>
+                    <dt class="col-sm-3">E-mail</dt>
+                    <dd class="col-sm-9">
+                        @if (displayEmail is not null)
+                        {
+                            @displayEmail
+                            if (Model.EmailConfirmed)
+                            {
+                                <span class="badge text-bg-success ms-2">verified</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">not set</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">Sign-in methods</div>
+            <div class="card-body">
+                @if (Model.AssociatedLogins.Count > 0)
+                {
+                    <ul class="list-group list-group-flush mb-3">
+                        @foreach (var login in Model.AssociatedLogins)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>@(login.ProviderDisplayName ?? login.LoginProvider)</span>
+                                <form asp-action="RemoveLogin" method="post"
+                                      data-confirm="Unlink @(login.ProviderDisplayName ?? login.LoginProvider) from this account?">
+                                    <input type="hidden" name="loginProvider" value="@login.LoginProvider" />
+                                    <input type="hidden" name="providerKey" value="@login.ProviderKey" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Unlink</button>
+                                </form>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted">No external accounts are linked yet.</p>
+                }
+
+                @if (Model.HasPassword)
+                {
+                    <p class="text-muted small mb-0">
+                        You can also link Google for one-click sign-in below.
+                    </p>
+                }
+                else
+                {
+                    <div class="alert alert-info small py-2 mb-3" role="alert">
+                        This account currently has <strong>no password</strong>. Set one below
+                        before unlinking external sign-in, or you will lose access.
+                    </div>
+                }
+
+                <partial name="_ExternalLoginButtons" />
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">
+                @(Model.HasPassword ? "Change password" : "Set password")
+            </div>
+            <div class="card-body">
+                <form asp-action="ChangePassword" method="post" novalidate class="row g-3">
+                    @if (Model.HasPassword)
+                    {
+                        <div class="col-md-6">
+                            <label for="currentPassword" class="form-label">Current password</label>
+                            <input type="password" class="form-control" id="currentPassword"
+                                   name="CurrentPassword" autocomplete="current-password" />
+                        </div>
+                    }
+
+                    <div class="col-md-6">
+                        <label for="newPassword" class="form-label">New password</label>
+                        <input type="password" class="form-control" id="newPassword"
+                               name="NewPassword" autocomplete="new-password" required minlength="8" />
+                        <div class="form-text">At least 8 characters with an upper-case letter, a lower-case letter and a digit.</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="confirmPassword" class="form-label">Confirm new password</label>
+                        <input type="password" class="form-control" id="confirmPassword"
+                               name="ConfirmPassword" autocomplete="new-password" required minlength="8" />
+                    </div>
+
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            @(Model.HasPassword ? "Change password" : "Set password")
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
