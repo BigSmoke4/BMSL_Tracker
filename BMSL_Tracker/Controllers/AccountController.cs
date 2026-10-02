@@ -295,7 +295,7 @@ public class AccountController : Controller
             Email = user.Email,
             EmailConfirmed = user.EmailConfirmed,
             HasPassword = await _userManager.HasPasswordAsync(user),
-            AssociatedLogins = await _userManager.GetLoginsAsync(user),
+            AssociatedLogins = (await _userManager.GetLoginsAsync(user)).ToList(),
             ExternalReturnUrl = Url.Action(nameof(Manage), "Account"),
         };
 
