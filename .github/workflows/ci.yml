@@ -37,7 +37,19 @@ jobs:
         run: dotnet build BMSL_Tracker.sln -c Release --no-restore -warnaserror
 
       - name: Test
-        run: dotnet test tests/BMSL_Tracker.Tests -c Release --no-build --logger "trx;LogFileName=tests.trx" --results-directory TestResults
+        shell: bash
+        run: |
+          set +e
+          dotnet test tests/BMSL_Tracker.Tests -c Release --no-build \
+            --logger "console;verbosity=detailed" \
+            --logger "trx;LogFileName=tests.trx" --results-directory TestResults | tee test-output.log
+          code=${PIPESTATUS[0]}
+          if [ "$code" -ne 0 ]; then
+            # surface failure details as check annotations (readable via API)
+            grep -E "Failed [A-Za-z]|Error Message|Assert\.|Expected:|Actual:" test-output.log \
+              | head -60 | sed 's/^[[:space:]]*//' | awk '{print "::error::" $0}'
+          fi
+          exit $code
 
       - name: Publish
         run: dotnet publish BMSL_Tracker -c Release --no-build -o publish
