@@ -94,4 +94,32 @@ public class ViewModelValidationTests
         var model = new LoginViewModel { Username = "someone@example.com", Password = "whatever" };
         Assert.Empty(Validate(model));
     }
+
+    [Fact]
+    public void ChangePasswordViewModel_AcceptsWithoutCurrentPassword()
+    {
+        // CurrentPassword is only *semantically* required when a password exists; the
+        // controller enforces that, while pure view validation must let passwordless users through.
+        var model = new ChangePasswordViewModel
+        {
+            NewPassword = "NewPassw0rd",
+            ConfirmPassword = "NewPassw0rd",
+        };
+
+        Assert.Empty(Validate(model));
+    }
+
+    [Theory]
+    [InlineData("short", "short")]              // below minimum length
+    [InlineData("Passw0rd!", "Passw0rd?")]      // confirmation mismatch
+    public void ChangePasswordViewModel_RejectsInvalidCombinations(string newPassword, string confirm)
+    {
+        var model = new ChangePasswordViewModel
+        {
+            NewPassword = newPassword,
+            ConfirmPassword = confirm,
+        };
+
+        Assert.NotEmpty(Validate(model));
+    }
 }
