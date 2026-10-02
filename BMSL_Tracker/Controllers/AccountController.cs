@@ -137,13 +137,15 @@ public class AccountController : Controller
     // ------------------------------------------------------------------
 
     [HttpGet]
+    [ActionName("ExternalLogin")]
     [AllowAnonymous]
-    public async Task<IActionResult> ExternalLogin(string? provider = null, string? returnUrl = null)
+    public async Task<IActionResult> ExternalLoginGet(string? provider = null, string? returnUrl = null)
         => await ChallengeExternalAsync(provider, returnUrl);
 
     [HttpPost]
+    [ActionName("ExternalLogin")]
     [AllowAnonymous]
-    public async Task<IActionResult> ExternalLogin(string? provider = null, string? returnUrl = null)
+    public async Task<IActionResult> ExternalLoginPost(string? provider = null, string? returnUrl = null)
         => await ChallengeExternalAsync(provider, returnUrl);
 
     private async Task<IActionResult> ChallengeExternalAsync(string? provider, string? returnUrl)
