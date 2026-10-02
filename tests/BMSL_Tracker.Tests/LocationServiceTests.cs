@@ -102,7 +102,9 @@ public class LocationServiceTests
     [Fact]
     public void ShouldPersist_FirstAcceptedSampleYes_ThenOnlyOnMoveOrInterval()
     {
-        var service = CreateService();
+        // SmoothingWindow = 1 -> persisted coordinates are the raw samples, which makes the
+        // distance-based write-gate easy to reason about deterministically.
+        var service = CreateService(o => o.SmoothingWindow = 1);
 
         Assert.True(service.TryValidateAndSmooth("user-1", 23.81, 90.41, 10, out var loc));
         Assert.True(service.ShouldPersist("user-1", loc));
