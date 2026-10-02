@@ -62,6 +62,8 @@ dotnet ef database update
 
 Set the production connection string in the deployment environment before running the migration command. The current migration adds a composite index used by tracker lookups and retention cleanup.
 
+**Upgrade note:** the prior registration flow stored placeholder addresses such as `username@placeholder.com` and did not confirm email. Those existing accounts will not pass the new confirmed-email sign-in policy. For an existing SQL database, verify and repair each account’s email through a controlled administrator process before rollout; do not mark placeholder addresses confirmed automatically. A fresh deployment should start with a new Identity database and apply all migrations.
+
 Build a container from the repository root:
 
 ```bash
