@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using BMSL_Tracker.Data;
 using BMSL_Tracker.Hubs;
 using BMSL_Tracker.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
