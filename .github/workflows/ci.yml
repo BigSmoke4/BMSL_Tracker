@@ -1,0 +1,60 @@
+# ---------------------------------------------------------------------------
+# BMSL Tracker CI — build + test + container smoke-build on every PR to main.
+# ---------------------------------------------------------------------------
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-and-test:
+    name: Build & test (.NET 9)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore
+        run: dotnet restore BMSL_Tracker.sln
+
+      - name: Build
+        run: dotnet build BMSL_Tracker.sln -c Release --no-restore -warnaserror
+
+      - name: Test
+        run: dotnet test tests/BMSL_Tracker.Tests -c Release --no-build --logger "trx;LogFileName=tests.trx" --results-directory TestResults
+
+      - name: Publish
+        run: dotnet publish BMSL_Tracker -c Release --no-build -o publish
+
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/
+
+  docker-image:
+    name: Container build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t bmsl-tracker:ci .

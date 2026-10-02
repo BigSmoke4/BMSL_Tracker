@@ -1,33 +1,67 @@
 @model BMSL_Tracker.Models.RegisterViewModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Create account";
+    ViewData["ReturnUrl"] = Model.ReturnUrl;
+    ViewData["ExternalMode"] = "creating your account";
 }
 
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="text-center mb-4">Create a New Account</h2>
-                <form asp-action="Register" method="post">
-                    <div asp-validation-summary="All" class="text-danger"></div>
+<div class="row justify-content-center mt-4">
+    <div class="col-12 col-sm-8 col-md-6 col-lg-5">
+        <div class="card shadow auth-card">
+            <div class="card-body p-4">
+                <h1 class="h3 text-center mb-1">Create a new account</h1>
+                <p class="text-center text-muted mb-4">
+                    Field staff can be invited by an administrator, or sign up here.
+                </p>
+
+                <form asp-action="Register" method="post" novalidate>
+                    <input type="hidden" asp-for="ReturnUrl" />
+                    <div asp-validation-summary="All" class="text-danger small mb-2" role="alert"></div>
+
                     <div class="form-floating mb-3">
-                        <input asp-for="Username" class="form-control" placeholder="Username" />
+                        <input asp-for="Username" class="form-control" placeholder="User name"
+                               autocomplete="username" autofocus />
                         <label asp-for="Username"></label>
-                        <span asp-validation-for="Username" class="text-danger"></span>
+                        <span asp-validation-for="Username" class="text-danger small"></span>
+                        <div class="form-text">4-64 characters: letters, digits, ".", "_" or "-".</div>
                     </div>
+
                     <div class="form-floating mb-3">
-                        <input asp-for="Password" class="form-control" placeholder="Password" />
-                        <label asp-for="Password"></label>
-                        <span asp-validation-for="Password" class="text-danger"></span>
+                        <input asp-for="Email" class="form-control" placeholder="E-mail"
+                               type="email" autocomplete="email" />
+                        <label asp-for="Email"></label>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                        <div class="form-text">Optional — used for future notifications and account recovery.</div>
                     </div>
+
                     <div class="form-floating mb-3">
-                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm Password" />
+                        <input asp-for="Password" class="form-control" placeholder="Password"
+                               autocomplete="new-password" />
+                        <label asp-for="Password">Password</label>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                        <div class="form-text">At least 8 characters with an upper-case letter, a lower-case letter and a digit.</div>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm Password"
+                               autocomplete="new-password" />
                         <label asp-for="ConfirmPassword"></label>
-                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                     </div>
+
                     <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
                 </form>
+
+                <partial name="_ExternalLoginButtons" />
+
+                <p class="text-center text-muted small mt-4 mb-0">
+                    Already registered? <a asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">Log in</a>
+                </p>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

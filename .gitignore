@@ -1,0 +1,64 @@
+# ---------------------------------------------------------------
+# BMSL Tracker — .gitignore
+# ---------------------------------------------------------------
+
+# Build artifacts
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+out/
+artifacts/
+TestResults/
+*.binlog
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# NuGet
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nupkg
+project.lock.json
+
+# .NET / local secrets
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+appsettings.Local.json
+appsettings.*.local.json
+.env
+*.env
+!.env.example
+
+# Data Protection key rings (never commit keys)
+keys/
+keys-*/
+
+# Certificates
+*.pfx
+*.cer
+*.key
+*.pem
+
+# Coverage / test output
+coverage*.json
+coverage*.xml
+coverage*.info
+*.trx
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Misc
+*.tmp
+*.cache

@@ -8,17 +8,18 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
 html {
   position: relative;
   min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+  margin-bottom: 0;
+  background-color: #f6f7f9;
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -28,4 +29,112 @@ body {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
+}
+
+/* ------------------------------------------------------------------ */
+/* Branding                                                            */
+/* ------------------------------------------------------------------ */
+.navbar-brand .brand-dot {
+  display: inline-block;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0d6efd, #6610f2);
+  margin-right: 0.4rem;
+}
+
+.footer {
+  font-size: 0.85rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Auth pages                                                          */
+/* ------------------------------------------------------------------ */
+.auth-card {
+  border: 0;
+  border-radius: 1rem;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--bs-secondary-color);
+  font-size: 0.85rem;
+  margin: 1rem 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--bs-border-color);
+}
+
+.auth-divider > span {
+  padding: 0 0.75rem;
+}
+
+.btn-google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background-color: #fff;
+  border-color: #dadce0;
+  padding: 0.6rem 1rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+}
+
+.btn-google:hover {
+  background-color: #f7f8fa;
+  border-color: #c7c9cc;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.15);
+}
+
+.btn-google svg {
+  flex: 0 0 auto;
+}
+
+/* ------------------------------------------------------------------ */
+/* Live map                                                            */
+/* ------------------------------------------------------------------ */
+#map {
+  height: calc(100vh - 168px);
+  min-height: 420px;
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 0; /* keep leaflet panes below navbars/toasts */
+}
+
+.tracker-header #status {
+  min-width: 8.5rem;
+  text-align: center;
+}
+
+.leaflet-popup-content {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 575.98px) {
+  #map {
+    height: calc(100vh - 210px);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Utilities                                                           */
+/* ------------------------------------------------------------------ */
+.toast-container {
+  z-index: 1080;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

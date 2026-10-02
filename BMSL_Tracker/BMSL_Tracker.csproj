@@ -5,15 +5,35 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-BMSL_Tracker-ffcc12cc-236f-4de0-89ed-2f35f78830ff</UserSecretsId>
+    <RootNamespace>BMSL_Tracker</RootNamespace>
+    <VersionPrefix>2.0.0</VersionPrefix>
+    <Authors>Billing Master Software Ltd.</Authors>
+    <Product>BMSL Tracker</Product>
+    <Description>Real-time employee geolocation tracking with SignalR, ASP.NET Core Identity and Google external sign-in.</Description>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsNotAsErrors></WarningsNotAsErrors>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <!-- Docker/CI build ergonomics -->
+    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:9.0</ContainerBaseImage>
+    <!-- Keep build output deterministic-ish for caching -->
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
 
-
-
   <ItemGroup>
+    <!-- ASP.NET Core 9 patch train (9.0.9) -->
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.9" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.9" />
+    <!-- SQLite provider: local development, tests and small single-node deployments -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.9" />
+    <!-- Optional SignalR scale-out backplane (activated only when ConnectionStrings:Redis is configured) -->
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="9.0.9" />
   </ItemGroup>
 
 </Project>

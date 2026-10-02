@@ -1,0 +1,42 @@
+# Normalize line endings: text files get LF in the repo, native in the working tree.
+* text=auto
+
+# Never touch binary assets
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.snk binary
+*.dll binary
+*.pdb binary
+*.exe binary
+*.vsix binary
+*.nupkg binary
+*.gz binary
+*.br binary
+*.woff binary
+*.woff2 binary
+
+# Explicit text types (important on Windows checkouts)
+*.cs text diff=csharp
+*.csproj text
+*.props text
+*.targets text
+*.sln text
+*.json text
+*.razor text
+*.cshtml text
+*.html text
+*.css text
+*.js text
+*.map text
+*.md text
+*.yml text
+*.yaml text
+*.sh text eol=lf
+Dockerfile text
+
+# Vendored libraries — exclude from diffs to keep reviews readable
+BMSL_Tracker/wwwroot/lib/leaflet/leaflet.js -diff
+BMSL_Tracker/wwwroot/lib/signalr/signalr.min.js -diff
